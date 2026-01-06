@@ -65,6 +65,17 @@ if [[ -z "$IN_TAR" ]]; then
   IN_TAR="$(ls -1t /in/*.tar 2>/dev/null | head -n1 || true)"
 fi
 
+if [[ -n "$IN_TAR" && "$IN_TAR" != /* ]]; then
+  IN_TAR="/in/$IN_TAR"
+fi
+
+if [[ -n "$IN_TAR" && -s "$IN_TAR" ]]; then
+  log "IN_TAR set but missing: $IN_TAR -> fallback to newest /in/*.tar"
+  IN_TAR="$(ls -1t /in/*tar 2>/dev/null | head -n1 || true)"
+fi
+
+log "Debug: resolved IN_TAR='${IN_TAR:-}"
+
 LOADED_IMG=""
 if [[ -n "$IN_TAR" && -s "$IN_TAR" ]]; then
   log "Found tar: $IN_TAR → loading image"

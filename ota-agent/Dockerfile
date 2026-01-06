@@ -21,7 +21,7 @@ WORKDIR /app
 COPY agent.sh /app/agent.sh
 RUN chmod +x /app/agent.sh
 
-ENV IN_TAR=/in/ivi-theme-0.1.tar \
+ENV IN_TAR="" \
     LISTEN_PORT=8080 \
     TEST_IMG=""
 

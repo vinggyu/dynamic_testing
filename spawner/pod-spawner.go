@@ -102,7 +102,7 @@ func createDynamicPod(clientset *kubernetes.Clientset, name string, testImg stri
 	// hostPath는 절대경로여야 합니다.
 	hostPathDir := os.Getenv("AGENT_IO_DIR")
 	if hostPathDir == "" {
-		hostPathDir = "/home/dong/dynamic_testing/agent-io" // 환경에 맞게 바꾸세요.
+		hostPathDir = "/home/kuse/zta_ota/dynamic_testing/agent-io" // 환경에 맞게 바꾸세요.
 		log.Printf("WARNING: AGENT_IO_DIR is empty. Using default hostPath: %s", hostPathDir)
 	}
 
