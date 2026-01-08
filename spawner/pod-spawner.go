@@ -111,7 +111,7 @@ func createDynamicPod(clientset *kubernetes.Clientset, name string, testImg stri
 	privileged := true
 	runAsUser := int64(0)
 	runAsGroup := int64(0)
-	fsGroup := int64(0)
+	fsGroup := int64(1000)
 	hostPathType := v1.HostPathDirectoryOrCreate
 
 	envs := []v1.EnvVar{}
@@ -131,6 +131,7 @@ func createDynamicPod(clientset *kubernetes.Clientset, name string, testImg stri
 			},
 		},
 		Spec: v1.PodSpec{
+			RestartPolicy: v1.RestartPolicyNever,
 			SecurityContext: &v1.PodSecurityContext{
 				RunAsUser:  &runAsUser,
 				RunAsGroup: &runAsGroup,

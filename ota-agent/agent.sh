@@ -41,6 +41,7 @@ mkdir -p "$ART_DIR"
 cleanup() {
   # best-effort cleanup
   podman rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
+  chown -R 1000:1000 /out 2>/dev/null || true
 }
 trap cleanup EXIT
 
@@ -114,10 +115,24 @@ podman rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
 # 2) Start container (keep as-is conceptually)
 # -----------------------------
 log "Starting test container..."
+
+set +e
 podman run -d --name "$CONTAINER_NAME" \
   --user 0 \
+  --pull=never \
   -p "${LISTEN_PORT}:80" \
-  "$TEST_IMG" | tee "$OUT_DIR/run_id.txt" >/dev/null
+  "$TEST_IMG" > "$OUT_DIR/run_id.txt" 2> "$ART_DIR/podman_run.err"
+rc=$?
+set -e
+
+if [[ $rc -ne 0 ]]; then
+  append_report "[FAIL] podman run failed (rc=$rc)"
+  append_report "[INFO] artifacts/podman_run.err"
+
+  podman info --debug > "$ART_DIR/podman_info.log" 2>&1 || true
+  podman ps -a > "$ART_DIR/podman_ps_a.log" 2>&1 || true
+  podman images > "$ART_DIR/podman_images.log" 2>&1 || true
+fi
 
 sleep "$STARTUP_WAIT"
 
