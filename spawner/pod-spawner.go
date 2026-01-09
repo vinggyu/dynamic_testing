@@ -102,7 +102,7 @@ func createDynamicPod(clientset *kubernetes.Clientset, name string, testImg stri
 	// hostPath는 절대경로여야 합니다.
 	hostPathDir := os.Getenv("AGENT_IO_DIR")
 	if hostPathDir == "" {
-		hostPathDir = "/home/kuse/zta_ota/dynamic_testing/agent-io" // 환경에 맞게 바꾸세요.
+		hostPathDir = "/home/kuse/ota/dynamic_testing/agent-io" // 환경에 맞게 바꾸세요.
 		log.Printf("WARNING: AGENT_IO_DIR is empty. Using default hostPath: %s", hostPathDir)
 	}
 
@@ -199,6 +199,7 @@ func waitForPodCompletionAndCleanup(clientset *kubernetes.Clientset, name string
 		select {
 		case <-ctx.Done():
 			return fmt.Errorf("timeout waiting for pod %s to complete", name)
+
 		default:
 			pod, err := clientset.CoreV1().Pods(namespace).Get(ctx, name, metav1.GetOptions{})
 			if err != nil {
@@ -206,7 +207,7 @@ func waitForPodCompletionAndCleanup(clientset *kubernetes.Clientset, name string
 			}
 
 			switch pod.Status.Phase {
-			case v1.PodSucceeded, v1.PodFailed:
+			case v1.PodSucceeded:
 				log.Printf("Pod %s finished with phase %s. Deleting...", name, pod.Status.Phase)
 				deletePolicy := metav1.DeletePropagationForeground
 				return clientset.CoreV1().Pods(namespace).Delete(
@@ -214,7 +215,13 @@ func waitForPodCompletionAndCleanup(clientset *kubernetes.Clientset, name string
 					name,
 					metav1.DeleteOptions{PropagationPolicy: &deletePolicy},
 				)
+
+			case v1.PodFailed:
+				// ✅ 실패 pod는 디버깅을 위해 남김
+				log.Printf("Pod %s finished with phase %s. Keeping for debugging (no delete).", name, pod.Status.Phase)
+				return nil
 			}
+
 			time.Sleep(2 * time.Second)
 		}
 	}
